@@ -2,10 +2,15 @@
   "dependencies": {
     "@aps_sdk/authentication": "^1.0.0",
     "@aps_sdk/data-management": "^1.1.2",
+    "@aps_sdk/oss": "^1.0.0",
+    "@aps_sdk/model-derivative": "^1.0.0",
     "cookie-session": "^2.1.1",
+    "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "express-formidable": "^1.2.0",
+    "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.10"
   },
   "name": "backend",
@@ -17,7 +22,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build:frontend": "cd ../frontend && npm run build",
-    "dev:full": "concurrently \"npm run dev\" \"cd ../frontend && npm run dev\""
+    "dev:full": "concurrently \"npm run dev\" \"cd ../frontend && npm run dev\"",
+    "setup": "npm install && cd ../frontend && npm install"
   },
   "keywords": [],
   "author": "",

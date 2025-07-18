@@ -5,6 +5,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import authRouter from "./routes/auth.js";
 import hubsRouter from "./routes/hubs.js";
+import bucketsRouter from "./routes/buckets.js";
+import modelsRouter from "./routes/models.js";
 
 import { PORT, SERVER_SESSION_SECRET } from "./config.js";
 
@@ -15,7 +17,11 @@ let app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://aps-viewer-frontend.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173", // Vite dev server
+      "https://aps-viewer-frontend.vercel.app",
+    ],
     credentials: true,
   })
 );
@@ -30,6 +36,8 @@ app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 app.use(authRouter);
 app.use(hubsRouter);
+app.use(bucketsRouter);
+app.use(modelsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

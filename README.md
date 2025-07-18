@@ -1,6 +1,30 @@
-# APS Viewer Application
+# APS Viewer - Full Stack Application
 
-This is an Autodesk Platform Services (APS) viewer application with a React frontend and Express backend.
+A comprehensive Autodesk Platform Services (APS) viewer application with bucket management, model upload, and 3D visualization capabilities.
+
+## Features
+
+### Frontend (React + Vite)
+
+- **Authentication**: Login/logout with Autodesk account
+- **Bucket Management**: Create, delete, and select buckets
+- **Model Upload**: Upload 3D models to buckets
+- **Model Viewer**: 3D visualization using Autodesk Viewer
+- **Modern UI**: React hooks, components, and responsive design
+
+### Backend (Node.js + Express)
+
+- **APS Integration**: Full Autodesk Platform Services integration
+- **Bucket Operations**: CRUD operations for buckets
+- **Model Management**: Upload, translation, and status checking
+- **Authentication**: OAuth 2.0 flow with session management
+- **File Upload**: Multer integration for model file uploads
+
+## Prerequisites
+
+1. **Node.js** (v16 or higher)
+2. **APS App**: Create an app at [APS Developer Portal](https://aps.autodesk.com/developer/overview)
+3. **Git** (for cloning the repository)
 
 ## Setup
 
