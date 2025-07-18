@@ -6,6 +6,63 @@ html {
   font-family: ArtifaktElement;
 }
 
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-container h2 {
+  color: #d32f2f;
+  margin-bottom: 1rem;
+}
+
+.error-container p {
+  color: #666;
+  margin-bottom: 2rem;
+  max-width: 500px;
+}
+
+.error-container button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.error-container button:hover {
+  background-color: #1565c0;
+}
+
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 3em);
+  padding: 2rem;
+  text-align: center;
+  margin-top: 3em;
+}
+
+.welcome-container h2 {
+  color: #1976d2;
+  margin-bottom: 1rem;
+}
+
+.welcome-container p {
+  color: #666;
+  font-size: 1.1rem;
+  max-width: 500px;
+}
+
 #header,
 #sidebar,
 #preview {
@@ -41,9 +98,25 @@ html {
   margin: 0 0.5em;
 }
 
-#login {
+#header button {
   font-family: ArtifaktElement;
   font-size: 1em;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#header button:hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+#header button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 #header .title {

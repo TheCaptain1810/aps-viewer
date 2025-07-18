@@ -38,11 +38,11 @@ app.use((err, req, res, next) => {
 });
 
 // Serve the frontend for any non-API routes
-app.get(/(.*)/, (req, res) => {
-  if (!req.path.startsWith("/api")) {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-  }
-});
+// app.get(/(.*)/, (req, res) => {
+//   if (!req.path.startsWith("/api")) {
+//     res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+//   }
+// });
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

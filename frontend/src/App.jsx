@@ -1,68 +1,77 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { initTree } from "./utils/sidebar";
 import { initViewer, loadModel } from "./utils/viewer";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "";
+import { useAuth } from "./hooks/useAuth";
+import Header from "./components/Header";
+import ErrorBoundary from "./components/ErrorBoundary";
+import WelcomeScreen from "./components/WelcomeScreen";
 
 function App() {
-  useEffect(() => {
-    async function initializeApp() {
-      const login = document.getElementById("login");
-      try {
-        const resp = await fetch(`${SERVER_URL}/api/auth/profile`, {
-          credentials: "include", // Include cookies for session
-        });
-        if (resp.ok) {
-          const user = await resp.json();
-          login.innerText = `Logout (${user.name})`;
-          login.onclick = () => {
-            const iframe = document.createElement("iframe");
-            iframe.style.visibility = "hidden";
-            iframe.src = "https://accounts.autodesk.com/Authentication/LogOut";
-            document.body.appendChild(iframe);
-            iframe.onload = () => {
-              window.location.replace(`${SERVER_URL}/api/auth/logout`);
-              document.body.removeChild(iframe);
-            };
-          };
-          const viewer = await initViewer(document.getElementById("preview"));
-          initTree("#tree", (urn) => {
-            loadModel(viewer, urn);
-          });
-        } else {
-          login.innerText = "Login";
-          login.onclick = () =>
-            window.location.replace(`${SERVER_URL}/api/auth/login`);
-        }
-        login.style.visibility = "visible";
-      } catch (err) {
-        alert(
-          "Could not initialize the application. See console for more details."
-        );
-        console.error(err);
-      }
-    }
+  const { user, isLoading, error, login, logout } = useAuth();
+  const [initError, setInitError] = useState(null);
+  const previewRef = useRef(null);
+  const treeRef = useRef(null);
+  const viewerRef = useRef(null);
 
-    initializeApp();
-  }, []);
+  const handleModelSelection = (urn) => {
+    if (viewerRef.current) {
+      console.log("Loading model with URN:", urn);
+      loadModel(viewerRef.current, urn);
+    }
+  };
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
+  useEffect(() => {
+    const initializeViewer = async () => {
+      if (user && previewRef.current && treeRef.current) {
+        try {
+          setInitError(null);
+          console.log("Initializing viewer and tree...");
+
+          const viewer = await initViewer(previewRef.current);
+          viewerRef.current = viewer;
+
+          initTree(treeRef.current, handleModelSelection);
+
+          console.log("Viewer and tree initialized successfully");
+        } catch (err) {
+          console.error("Failed to initialize viewer:", err);
+          setInitError(
+            "Failed to initialize 3D viewer. Please refresh the page."
+          );
+        }
+      }
+    };
+
+    initializeViewer();
+  }, [user]); // Re-run when user changes
+
+  if (error || initError) {
+    return <ErrorBoundary error={error || initError} onRetry={handleRetry} />;
+  }
 
   return (
     <>
-      <div id="header">
-        <img
-          className="logo"
-          src="https://cdn.autodesk.io/logo/black/stacked.png"
-          alt="Autodesk Platform Services"
-        />
-        <span className="title">Hubs Browser</span>
-        <button id="login" style={{ visibility: "hidden" }}>
-          Login
-        </button>
-      </div>
-      <div id="sidebar">
-        <div id="tree"></div>
-      </div>
-      <div id="preview"></div>
+      <Header
+        user={user}
+        isLoading={isLoading}
+        onLogin={login}
+        onLogout={logout}
+      />
+
+      {user ? (
+        <>
+          <div id="sidebar">
+            <div ref={treeRef} id="tree"></div>
+          </div>
+          <div ref={previewRef} id="preview"></div>
+        </>
+      ) : (
+        !isLoading && <WelcomeScreen />
+      )}
     </>
   );
 }

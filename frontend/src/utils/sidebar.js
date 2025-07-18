@@ -75,7 +75,7 @@ async function getVersions(hubId, projectId, itemId) {
   );
 }
 
-export function initTree(selector, onSelectionChanged) {
+export function initTree(targetElement, onSelectionChanged) {
   const tree = new InspireTree({
     data: function (node) {
       if (!node || !node.id) {
@@ -97,12 +97,19 @@ export function initTree(selector, onSelectionChanged) {
       }
     },
   });
+
   tree.on("node.click", function (event, node) {
     event.preventTreeDefault();
     const tokens = node.id.split("|");
+    console.log("Node clicked:", node.id, "Tokens:", tokens);
     if (tokens[0] === "version") {
+      console.log("Version selected, URN:", tokens[1]);
       onSelectionChanged(tokens[1]); // Use the URN directly
     }
   });
-  return new InspireTreeDOM(tree, { target: selector });
+
+  // Accept either a string selector or DOM element
+  const target =
+    typeof targetElement === "string" ? targetElement : targetElement;
+  return new InspireTreeDOM(tree, { target });
 }
