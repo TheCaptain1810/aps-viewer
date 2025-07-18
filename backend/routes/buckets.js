@@ -113,6 +113,7 @@ router.get("/api/hubs/buckets/:bucketKey/objects", async (req, res, next) => {
       objects.map((obj) => ({
         id: obj.objectKey,
         name: obj.objectKey,
+        urn: urnify(obj.objectId),
         size: obj.size,
         lastModified: obj.lastModified,
       }))
@@ -129,6 +130,19 @@ router.post(
     try {
       const { bucketKey } = req.params;
       const file = req.file;
+
+      console.log("=== BUCKET UPLOAD DEBUG ===");
+      console.log("URL params:", req.params);
+      console.log("Bucket key:", bucketKey);
+      console.log("File:", file ? file.originalname : "No file");
+      console.log("=========================");
+
+      if (!bucketKey || bucketKey === "undefined") {
+        return res.status(400).json({
+          error: "Invalid bucket key provided",
+          received: bucketKey,
+        });
+      }
 
       if (!file) {
         return res.status(400).json({ error: "No file provided" });

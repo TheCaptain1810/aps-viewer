@@ -99,12 +99,21 @@ function BucketManager({ viewer }) {
 
   const handleModelSelect = async (model) => {
     setSelectedModel(model);
-    await checkModelStatus(model.urn);
+    if (selectedBucket && model) {
+      await checkModelStatus(model.urn, model.name, selectedBucket.id);
+    }
   };
 
   const handleCheckStatus = async (urn) => {
-    const status = await checkModelStatus(urn);
-    return status;
+    if (selectedBucket && selectedModel) {
+      const status = await checkModelStatus(
+        urn,
+        selectedModel.name,
+        selectedBucket.id
+      );
+      return status;
+    }
+    return null;
   };
 
   // Load model in viewer when ready

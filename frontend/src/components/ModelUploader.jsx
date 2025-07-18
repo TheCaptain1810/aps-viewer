@@ -36,7 +36,17 @@ function ModelUploader({ selectedBucket, onUploadModel, isLoading }) {
 
     try {
       setIsUploading(true);
-      await onUploadModel(file, selectedBucket.urn, entrypoint);
+      console.log("=== MODEL UPLOAD DEBUG ===");
+      console.log("File:", file.name);
+      console.log("Selected bucket:", selectedBucket);
+      console.log("Bucket ID:", selectedBucket?.id);
+      console.log("========================");
+
+      if (!selectedBucket || !selectedBucket.id) {
+        throw new Error("No bucket selected or bucket ID is missing");
+      }
+
+      await onUploadModel(file, selectedBucket.id, entrypoint);
     } catch (err) {
       alert(
         `Could not upload model ${file.name}. See the console for more details.`

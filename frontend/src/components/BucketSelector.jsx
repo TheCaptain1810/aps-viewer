@@ -75,15 +75,15 @@ function BucketSelector({
           <div className="dropdown-options" role="listbox">
             {buckets.map((bucket) => (
               <div
-                key={bucket.urn}
+                key={bucket.id}
                 className={`dropdown-option ${
-                  selectedBucket?.urn === bucket.urn ? "selected" : ""
+                  selectedBucket?.id === bucket.id ? "selected" : ""
                 }`}
                 onClick={() => handleBucketSelect(bucket)}
                 role="option"
                 tabIndex={-1}
                 title={bucket.name}
-                aria-selected={selectedBucket?.urn === bucket.urn}
+                aria-selected={selectedBucket?.id === bucket.id}
               >
                 <span className="option-name" title={bucket.name}>
                   {bucket.name}

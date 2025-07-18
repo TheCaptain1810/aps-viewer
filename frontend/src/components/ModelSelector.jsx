@@ -17,7 +17,9 @@ function ModelSelector({
     if (model) {
       onModelSelect(model);
       // Check status when model is selected
-      await onCheckStatus(urn);
+      if (onCheckStatus) {
+        await onCheckStatus(urn);
+      }
     }
   };
 
@@ -64,6 +66,12 @@ function ModelSelector({
     return "Select a model...";
   };
 
+  // Debug models array
+  useEffect(() => {
+    console.log("ModelSelector: models changed", models);
+    console.log("ModelSelector: selected model", selectedModel);
+  }, [models, selectedModel]);
+
   return (
     <div className="model-selector">
       <select
@@ -76,9 +84,9 @@ function ModelSelector({
         <option value="" disabled>
           {getSelectText()}
         </option>
-        {models.map((model) => (
-          <option key={model.urn} value={model.urn}>
-            {model.name}
+        {models.map((model, index) => (
+          <option key={model.urn || `model-${index}`} value={model.urn || ""}>
+            {model.name || `Model ${index + 1}`}
           </option>
         ))}
       </select>

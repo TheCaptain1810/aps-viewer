@@ -9,8 +9,8 @@ export function useModels(selectedBucket) {
   const [error, setError] = useState(null);
   const [modelStatus, setModelStatus] = useState(null);
 
-  const fetchModels = async (bucketUrn) => {
-    if (!bucketUrn) {
+  const fetchModels = async (bucketId) => {
+    if (!bucketId) {
       setModels([]);
       return [];
     }
@@ -21,7 +21,7 @@ export function useModels(selectedBucket) {
 
       const resp = await fetch(
         `${SERVER_URL}/api/hubs/buckets/${encodeURIComponent(
-          bucketUrn
+          bucketId
         )}/objects`,
         { credentials: "include" }
       );
@@ -43,17 +43,30 @@ export function useModels(selectedBucket) {
     }
   };
 
-  const uploadModel = async (file, bucketUrn) => {
+  const uploadModel = async (file, bucketId) => {
     try {
       setIsLoading(true);
       setError(null);
+
+      console.log("=== USE MODELS UPLOAD DEBUG ===");
+      console.log("File:", file.name);
+      console.log("Bucket ID:", bucketId);
+      console.log(
+        "Upload URL:",
+        `${SERVER_URL}/api/hubs/buckets/${encodeURIComponent(bucketId)}/objects`
+      );
+      console.log("==============================");
+
+      if (!bucketId) {
+        throw new Error("Bucket ID is required for upload");
+      }
 
       const formData = new FormData();
       formData.append("file", file);
 
       const resp = await fetch(
         `${SERVER_URL}/api/hubs/buckets/${encodeURIComponent(
-          bucketUrn
+          bucketId
         )}/objects`,
         {
           method: "POST",
@@ -67,7 +80,7 @@ export function useModels(selectedBucket) {
       }
 
       const result = await resp.json();
-      await fetchModels(bucketUrn); // Refresh models list
+      await fetchModels(bucketId); // Refresh models list
 
       return result;
     } catch (err) {
@@ -79,11 +92,11 @@ export function useModels(selectedBucket) {
     }
   };
 
-  const checkModelStatus = async (urn, modelName, bucketUrn) => {
+  const checkModelStatus = async (urn, modelName, bucketId) => {
     try {
       const resp = await fetch(
         `${SERVER_URL}/api/hubs/buckets/${encodeURIComponent(
-          bucketUrn
+          bucketId
         )}/objects/${encodeURIComponent(modelName)}/status`,
         {
           credentials: "include",
@@ -108,7 +121,7 @@ export function useModels(selectedBucket) {
   // Fetch models when selected bucket changes
   useEffect(() => {
     if (selectedBucket) {
-      fetchModels(selectedBucket.urn);
+      fetchModels(selectedBucket.id);
     } else {
       setModels([]);
       setSelectedModel(null);
@@ -133,6 +146,6 @@ export function useModels(selectedBucket) {
     error,
     uploadModel,
     checkModelStatus,
-    refreshModels: () => selectedBucket && fetchModels(selectedBucket.urn),
+    refreshModels: () => selectedBucket && fetchModels(selectedBucket.id),
   };
 }

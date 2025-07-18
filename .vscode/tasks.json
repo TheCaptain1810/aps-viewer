@@ -8,7 +8,22 @@
       "args": [],
       "group": "build",
       "isBackground": true,
-      "problemMatcher": []
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      }
+    },
+    {
+      "label": "Start Backend Server",
+      "type": "shell",
+      "command": "node",
+      "args": ["server.js"],
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      }
     }
   ]
 }
