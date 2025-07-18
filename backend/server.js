@@ -15,11 +15,7 @@ let app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:4173",
-    ],
+    origin: ["http://localhost:3000", "https://aps-viewer-frontend.vercel.app"],
     credentials: true,
   })
 );
