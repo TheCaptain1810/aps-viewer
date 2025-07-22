@@ -64,6 +64,61 @@ router.post("/api/buckets/create", async (req, res, next) => {
   }
 });
 
+router.delete("/api/buckets/:bucketName", async (req, res, next) => {
+  try {
+    const { bucketName } = req.params;
+    if (!bucketName) {
+      res.status(400).json({ error: "Bucket name is required." });
+      return;
+    }
+
+    let sanitizedBucketName = bucketName
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/^[^a-z0-9]+/, "")
+      .replace(/[^a-z0-9]+$/, "");
+
+    const result = await deleteBucket(sanitizedBucketName);
+
+    res.json({
+      success: true,
+      message: `Bucket "${sanitizedBucketName}" deleted successfully.`,
+      result,
+    });
+  } catch (error) {
+    console.error("Delete bucket error:", error);
+
+    // Handle specific APS API errors
+    if (error.axiosError && error.axiosError.response) {
+      const status = error.axiosError.response.status;
+      const errorData = error.axiosError.response.data;
+
+      if (status === 403) {
+        res.status(403).json({
+          error:
+            "Access denied. You can only delete buckets that you created. Buckets created by other applications or users cannot be deleted.",
+          details: errorData,
+        });
+        return;
+      }
+
+      if (status === 404) {
+        res.status(404).json({
+          error: "Bucket not found or already deleted.",
+          details: errorData,
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      error: error.message || "Failed to delete bucket",
+      details: error.axiosError ? error.axiosError.response?.data : undefined,
+    });
+  }
+});
+
+// Keep the original route for backward compatibility
 router.delete("/api/buckets", async (req, res, next) => {
   try {
     const { bucketName } = req.body;
@@ -82,7 +137,7 @@ router.delete("/api/buckets", async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.send(error.message);
+    res.status(500).json({ error: error.message });
     next(error);
   }
 });

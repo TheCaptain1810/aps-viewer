@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 body,
 html {
   margin: 0;
@@ -17,14 +19,22 @@ html {
   height: 3em;
   display: flex;
   flex-flow: row nowrap;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  z-index: 10;
 }
 
 #preview,
 #overlay {
   top: 3em;
   bottom: 0;
+}
+
+#preview {
+  left: 0;
+  right: 0;
 }
 
 #overlay {
@@ -39,6 +49,7 @@ html {
   padding: 1em;
   max-width: 50%;
   background: white;
+  border-radius: 4px;
 }
 
 #header > * {
@@ -51,9 +62,39 @@ html {
 #header .title {
   flex: 1 0 auto;
   height: auto;
+  font-weight: 600;
+  font-size: 1.2em;
 }
 
-#models {
-  flex: 0 1 auto;
-  min-width: 2em;
+#header .logo {
+  height: 2.5em;
+  width: auto;
+}
+
+/* Sidebar styles */
+.sidebar-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  /* On mobile, sidebar should overlay completely */
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

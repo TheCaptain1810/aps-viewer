@@ -21,6 +21,7 @@ async function getInternalToken() {
       Scopes.DataWrite,
       Scopes.BucketCreate,
       Scopes.BucketRead,
+      Scopes.BucketDelete,
     ]
   );
   return credentials.access_token;
@@ -51,17 +52,17 @@ const ensureBucketExists = async (bucketKey) => {
   }
 };
 
-const listObjects = async () => {
-  await ensureBucketExists(APS_BUCKET);
+const listObjects = async (bucketName = APS_BUCKET) => {
+  await ensureBucketExists(bucketName);
   const accessToken = await getInternalToken();
-  let response = await ossClient.getObjects(APS_BUCKET, {
+  let response = await ossClient.getObjects(bucketName, {
     limit: 64,
     accessToken,
   });
   let objects = response.items;
   while (response.next) {
     const startAt = new URL(response.next).searchParams.get("startAt");
-    response = await ossClient.getObjects(APS_BUCKET, {
+    response = await ossClient.getObjects(bucketName, {
       limit: 64,
       startAt,
       accessToken,
@@ -71,10 +72,10 @@ const listObjects = async () => {
   return objects;
 };
 
-const uploadObject = async (objectName, filePath) => {
-  await ensureBucketExists(APS_BUCKET);
+const uploadObject = async (objectName, filePath, bucketName = APS_BUCKET) => {
+  await ensureBucketExists(bucketName);
   const accessToken = await getInternalToken();
-  const obj = await ossClient.uploadObject(APS_BUCKET, objectName, filePath, {
+  const obj = await ossClient.uploadObject(bucketName, objectName, filePath, {
     accessToken,
   });
   return obj;
@@ -121,13 +122,49 @@ const getManifest = async (urn) => {
 
 const urnify = (id) => Buffer.from(id).toString("base64").replace(/=/g, "");
 
+const deurnify = (urn) => Buffer.from(urn, "base64").toString();
+
+const listBuckets = async () => {
+  const accessToken = await getInternalToken();
+  let response = await ossClient.getBuckets({ limit: 64, accessToken });
+  let buckets = response.items || [];
+  while (response.next) {
+    const startAt = new URL(response.next).searchParams.get("startAt");
+    response = await ossClient.getBuckets({
+      limit: 64,
+      startAt,
+      accessToken,
+    });
+    buckets = buckets.concat(response.items || []);
+  }
+  return buckets;
+};
+
+const createBucket = async (bucketKey) => {
+  const accessToken = await getInternalToken();
+  return await ossClient.createBucket(
+    Region.Us,
+    { bucketKey: bucketKey, policyKey: PolicyKey.Persistent },
+    { accessToken }
+  );
+};
+
+const deleteBucket = async (bucketKey) => {
+  const accessToken = await getInternalToken();
+  return await ossClient.deleteBucket(bucketKey, { accessToken });
+};
+
 export {
   getInternalToken,
   getViewerToken,
   ensureBucketExists,
   listObjects,
+  listBuckets,
+  createBucket,
+  deleteBucket,
   uploadObject,
   translateObject,
   getManifest,
   urnify,
+  deurnify,
 };
