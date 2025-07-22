@@ -1,4 +1,9 @@
 /// import * as Autodesk from "@types/forge-viewer";
+import "../extensions/LoggerExtension.js";
+import "../extensions/SummaryExtension.js";
+import "../extensions/HistogramExtension.js";
+import "../extensions/DataGridExtension.js";
+import "../extensions/SelectedIdExtension.js";
 
 const { Autodesk } = window;
 
@@ -22,7 +27,14 @@ export function initViewer(container) {
       { env: "AutodeskProduction", getAccessToken },
       function () {
         const config = {
-          extensions: ["Autodesk.DocumentBrowser"],
+          extensions: [
+            "Autodesk.DocumentBrowser",
+            "LoggerExtension",
+            "SummaryExtension",
+            "HistogramExtension",
+            "DataGridExtension",
+            "SelectedIdExtension",
+          ],
         };
         const viewer = new Autodesk.Viewing.GuiViewer3D(container, config);
         viewer.start();
