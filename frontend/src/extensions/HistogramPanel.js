@@ -1,3 +1,5 @@
+import { Chart } from "chart.js";
+
 const Autodesk = window.Autodesk;
 
 export class HistogramPanel extends Autodesk.Viewing.UI.DockingPanel {

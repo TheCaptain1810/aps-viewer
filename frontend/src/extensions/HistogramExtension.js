@@ -1,7 +1,9 @@
-const Autodesk = window.Autodesk;
+import Chart from "chart.js/auto";
 
 import { BaseExtension } from "./BaseExtension.js";
 import { HistogramPanel } from "./HistogramPanel.js";
+
+const Autodesk = window.Autodesk;
 
 class HistogramExtension extends BaseExtension {
   constructor(viewer, options) {
@@ -14,10 +16,6 @@ class HistogramExtension extends BaseExtension {
 
   async load() {
     super.load();
-    await this.loadScript(
-      "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js",
-      "Chart"
-    );
     Chart.defaults.plugins.legend.display = false;
     console.log("HistogramExtension loaded.");
     return true;
