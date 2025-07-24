@@ -304,19 +304,19 @@ class MultiLevelExtension extends BaseExtension {
 
       successfullyApplied = true;
     } else {
-      // Fallback: use Z-range filtering if available
+      // Fallback: try original levels extension first, then Z-range filtering
       console.log(
-        "MultiLevelExtension: No dbIds found, trying Z-range filtering"
+        "MultiLevelExtension: No dbIds found, trying original levels extension first"
       );
-      successfullyApplied = this.applyZRangeFiltering(selectedLevelIndices);
-    }
+      successfullyApplied =
+        this.applyUsingOriginalLevelsExtension(selectedLevelIndices);
 
-    // If neither approach worked, try using the original LevelsExtension logic
-    if (!successfullyApplied) {
-      console.log(
-        "MultiLevelExtension: Fallback to original levels extension logic"
-      );
-      this.applyUsingOriginalLevelsExtension(selectedLevelIndices);
+      if (!successfullyApplied) {
+        console.log(
+          "MultiLevelExtension: Original extension failed, trying Z-range filtering"
+        );
+        successfullyApplied = this.applyZRangeFiltering(selectedLevelIndices);
+      }
     }
 
     // Trigger level changed event with multiple levels
@@ -349,9 +349,14 @@ class MultiLevelExtension extends BaseExtension {
 
     if (minZ === Infinity || maxZ === -Infinity) {
       console.warn(
-        "MultiLevelExtension: Could not determine Z-range for selected levels"
+        "MultiLevelExtension: Could not determine Z-range for selected levels, showing all instead"
       );
-      return false;
+      // Show everything if we can't determine range
+      this.viewer.showAll();
+      this.viewer.isolate([]);
+      this.viewer.setCutPlanes([]);
+      this.viewer.impl.invalidate(true, true, true);
+      return true;
     }
 
     console.log(
@@ -364,16 +369,39 @@ class MultiLevelExtension extends BaseExtension {
     // Show all elements first
     this.viewer.showAll();
 
+    // Add some padding to the Z-range to ensure we don't cut too close
+    const padding = Math.abs(maxZ - minZ) * 0.1; // 10% padding
+    const paddedMinZ = minZ - padding;
+    const paddedMaxZ = maxZ + padding;
+
+    console.log(
+      `MultiLevelExtension: Using padded Z-range: ${paddedMinZ} to ${paddedMaxZ}`
+    );
+
     // Apply cut planes to show only the selected Z-range
+    // Note: The normal vector (0,0,1) points up, and the distance is negative
     const cutPlanes = [
-      new window.THREE.Vector4(0, 0, 1, -minZ), // Bottom plane
-      new window.THREE.Vector4(0, 0, -1, maxZ), // Top plane
+      new window.THREE.Vector4(0, 0, 1, -paddedMinZ), // Bottom plane (cuts below minZ)
+      new window.THREE.Vector4(0, 0, -1, paddedMaxZ), // Top plane (cuts above maxZ)
     ];
 
     this.viewer.setCutPlanes(cutPlanes);
 
     // Force a refresh to ensure geometry is rendered
     this.viewer.impl.invalidate(true, true, true);
+
+    // Add a timeout to check if geometry is visible, if not, fall back to showing all
+    setTimeout(() => {
+      const visibleBounds = this.viewer.getVisibleBounds();
+      if (!visibleBounds || visibleBounds.isEmpty()) {
+        console.warn(
+          "MultiLevelExtension: Cut planes resulted in empty bounds, showing all instead"
+        );
+        this.viewer.setCutPlanes([]);
+        this.viewer.showAll();
+        this.viewer.impl.invalidate(true, true, true);
+      }
+    }, 500);
 
     return true;
   }
@@ -385,40 +413,81 @@ class MultiLevelExtension extends BaseExtension {
       return false;
     }
 
-    // For multiple levels, we'll apply each one sequentially
-    // This is a fallback approach when direct dbId mapping isn't available
-    if (selectedLevelIndices.length === 1) {
-      // If only one level is selected, use the original extension directly
-      this._levelsExtension.floorSelector.selectFloor(
-        selectedLevelIndices[0],
-        false
-      );
-    } else {
-      // For multiple levels, combine their visibility
-      // This is a more complex approach that might not work perfectly
-      // but provides a fallback
-      const floorSelector = this._levelsExtension.floorSelector;
+    try {
+      // For multiple levels, we'll apply each one sequentially
+      if (selectedLevelIndices.length === 1) {
+        // If only one level is selected, use the original extension directly
+        console.log(
+          `MultiLevelExtension: Using original extension for single level: ${selectedLevelIndices[0]}`
+        );
+        this._levelsExtension.floorSelector.selectFloor(
+          selectedLevelIndices[0],
+          false
+        );
 
-      // First, show all to reset state
-      this.viewer.showAll();
-      this.viewer.setCutPlanes([]);
+        // Check if the level selection worked
+        setTimeout(() => {
+          const visibleBounds = this.viewer.getVisibleBounds();
+          if (!visibleBounds || visibleBounds.isEmpty()) {
+            console.warn(
+              "MultiLevelExtension: Original extension resulted in empty bounds"
+            );
+            this.viewer.showAll();
+          }
+        }, 200);
 
-      // Then hide everything
-      this.viewer.hideAll();
+        return true;
+      } else {
+        // For multiple levels, combine their visibility
+        console.log(
+          `MultiLevelExtension: Using original extension for multiple levels: ${selectedLevelIndices}`
+        );
+        const floorSelector = this._levelsExtension.floorSelector;
 
-      // Show elements for each selected level
-      selectedLevelIndices.forEach((levelIndex) => {
-        const floorData = floorSelector.floorData;
-        if (floorData && floorData[levelIndex] && floorData[levelIndex].dbIds) {
-          this.viewer.show(floorData[levelIndex].dbIds);
+        // Clear any existing state
+        this.viewer.showAll();
+        this.viewer.setCutPlanes([]);
+        this.viewer.isolate([]);
+
+        // Collect all dbIds for selected levels
+        const allDbIds = new Set();
+        let foundAnyDbIds = false;
+
+        selectedLevelIndices.forEach((levelIndex) => {
+          const floorData = floorSelector.floorData;
+          if (
+            floorData &&
+            floorData[levelIndex] &&
+            floorData[levelIndex].dbIds
+          ) {
+            floorData[levelIndex].dbIds.forEach((dbId) => allDbIds.add(dbId));
+            foundAnyDbIds = true;
+          }
+        });
+
+        if (foundAnyDbIds && allDbIds.size > 0) {
+          console.log(
+            `MultiLevelExtension: Found ${allDbIds.size} dbIds from original extension`
+          );
+          this.viewer.isolate(Array.from(allDbIds));
+        } else {
+          console.warn(
+            "MultiLevelExtension: No dbIds found in original extension data"
+          );
+          return false;
         }
-      });
 
-      // Force refresh
-      this.viewer.impl.invalidate(true, true, true);
+        // Force refresh
+        this.viewer.impl.invalidate(true, true, true);
+        return true;
+      }
+    } catch (error) {
+      console.error(
+        "MultiLevelExtension: Error in original levels extension approach:",
+        error
+      );
+      return false;
     }
-
-    return true;
   }
 
   storeOriginalVisibility() {
