@@ -18,7 +18,11 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? false
-        : ["http://localhost:3000", "http://localhost:5173"],
+        : [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "https://thecaptain-aps-viewer.vercel.app",
+          ],
     credentials: true,
   })
 );
